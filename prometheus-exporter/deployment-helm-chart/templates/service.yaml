@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "openbmc-prometheus-exporter.fullname" . }}
+  labels:
+{{ include "openbmc-prometheus-exporter.labels" . | indent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "openbmc-prometheus-exporter.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

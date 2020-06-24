@@ -1,0 +1,47 @@
+---
+
+variables:
+  NOPROXY: localhost,127.0.0.1
+  NAMESPACE: pbmc
+#  IMAGE: your-registry-here/your-image-name-here
+#  PROXY: your-corporate-proxy-here
+
+stages:
+  - security
+  - build
+  - deploy
+
+bandit_scan:
+  stage: security
+  image: python:3.6.10-alpine3.11
+  script:
+    - http_proxy=$PROXY https_proxy=$PROXY pip3 install bandit==1.6.2
+    - bandit -r prometheus-exporter/service-code
+  tags:
+    - jftl
+
+build-and-push:
+  stage: build
+  image: "docker:18.06.1-dind"
+  script:
+    - printenv
+    - cd prometheus-exporter/service-code
+    - docker images
+    - docker build -t "${IMAGE}:${CI_COMMIT_REF_NAME}" -t "${IMAGE}:latest" --build-arg "http_proxy=${PROXY}" --build-arg "https_proxy=${PROXY}" --build-arg "NO_PROXY=${NOPROXY}" .
+    - docker push "${IMAGE}:${CI_COMMIT_REF_NAME}"
+    - docker push "${IMAGE}:latest"
+    - docker rmi "${IMAGE}:${CI_COMMIT_REF_NAME}" "${IMAGE}:latest"
+  tags:
+    - jftl
+
+deploy:
+  image: "dtzar/helm-kubectl:3.1.2"
+  variables:
+    KUBECONFIG: ${CI_PROJECT_DIR}.tmp/kubeconfig
+  stage: deploy
+  script:
+    - cd prometheus-exporter
+    - kubectl get ns ${NAMESPACE} || kubectl create ns ${NAMESPACE}
+    - helm upgrade -i pbmc --namespace ${NAMESPACE} -f deployment-example-credentials-file.yaml --set image.repository=$IMAGE deployment-helm-chart/
+  tags:
+    - jftl

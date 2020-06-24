@@ -1,0 +1,24 @@
+---
+
+groups:
+- name: default
+  redfish_base_path: /redfish/v1
+  readings:
+  - endpoint: /redfish/v1/Chassis/WC_Baseboard/Thermal
+    items:
+    - redfish_object: Fans
+      redfish_reading: Reading
+      prometheus_metric_name: bmc_fan_speed_rpm
+      prometheus_metric_health_name: bmc_fan_speed_ok
+    - redfish_object: Temperatures
+      redfish_reading: ReadingCelsius
+      prometheus_metric_name: bmc_temperature_celsius
+      prometheus_metric_health_name: bmc_temperature_celsius_ok
+  - endpoint: /redfish/v1/Chassis/WC_Baseboard/Power
+    items:
+    - redfish_object: Voltages
+      redfish_reading: ReadingVolts
+      prometheus_metric_name: bmc_voltage_volts
+      prometheus_metric_health_name: bmc_voltage_volts_ok
+  system_health:
+    endpoint: /redfish/v1/Systems/system

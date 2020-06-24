@@ -1,0 +1,88 @@
+# Default values for openbmc-prometheus-exporter.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+replicaCount: 1
+image:
+  repository: your-local-registry/prometheus-openbmc-exporter
+  tag: master
+  pullPolicy: Always
+resources:
+  limits:
+    cpu: 2
+    memory: 2G
+  requests:
+    cpu: 500m
+    memory: 1G
+configuration: |-
+  ---
+  groups:
+  - name: default
+    redfish_base_path: /redfish/v1
+
+    readings:
+    - endpoint: /redfish/v1/Chassis/WC_Baseboard/Thermal
+      items:
+      - redfish_object: Temperatures
+        redfish_reading: ReadingCelsius
+        prometheus_metric_name: bmc_temperature_celsius
+        prometheus_metric_health_name: bmc_temperature_celsius_ok
+    - endpoint: /redfish/v1/Chassis/R4000_Chassis/Thermal
+      items:
+      - redfish_object: Fans
+        redfish_reading: Reading
+        prometheus_metric_name: bmc_fan_speed
+        prometheus_metric_health_name: bmc_fan_speed_ok
+      - redfish_object: Temperatures
+        redfish_reading: ReadingCelsius
+        prometheus_metric_name: bmc_temperature_celsius
+        prometheus_metric_health_name: bmc_temperature_celsius_ok
+    - endpoint: /redfish/v1/Chassis/WC_Baseboard/Power
+      items:
+      - redfish_object: Voltages
+        redfish_reading: ReadingVolts
+        prometheus_metric_name: bmc_voltage_volts
+        prometheus_metric_health_name: bmc_voltage_volts_ok
+    - endpoint: /redfish/v1/Chassis/WFP_Baseboard/Thermal
+      items:
+      - redfish_object: Fans
+        redfish_reading: Reading
+        prometheus_metric_name: bmc_fan_speed
+        prometheus_metric_health_name: bmc_fan_speed_ok
+      - redfish_object: Temperatures
+        redfish_reading: ReadingCelsius
+        prometheus_metric_name: bmc_temperature_celsius
+        prometheus_metric_health_name: bmc_temperature_celsius_ok
+    - endpoint: /redfish/v1/Chassis/WFP_Baseboard/Power
+      items:
+      - redfish_object: Voltages
+        redfish_reading: ReadingVolts
+        prometheus_metric_name: bmc_voltage_volts
+        prometheus_metric_health_name: bmc_voltage_volts_ok
+
+    system_health:
+      endpoint: /redfish/v1/Systems/system

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "openbmc-prometheus-exporter.fullname" . }}
+  labels:
+{{ include "openbmc-prometheus-exporter.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "openbmc-prometheus-exporter.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "openbmc-prometheus-exporter.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: {{ template "openbmc-prometheus-exporter.serviceAccountName" . }}
+      containers:
+        - name: redfish
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          volumeMounts:
+            - mountPath: /etc/openbmc-exporter.yaml
+              name: redconfig
+              subPath: configyaml
+              readOnly: true
+            - mountPath: /etc/secrets
+              name: credentials
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 29
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 29
+            initialDelaySeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: redconfig
+          configMap:
+            name: {{ include "openbmc-prometheus-exporter.fullname" . }}
+            defaultMode: 0644
+        - name: credentials
+          secret:
+            secretName: {{ if .Values.existingSecret }}{{ .Values.existingSecret }}{{ else }}{{ include "openbmc-prometheus-exporter.fullname" . }}{{ end }}
+            defaultMode: 0640
