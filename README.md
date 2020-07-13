@@ -15,8 +15,13 @@ Navigate to [prometheus-exporter](/prometheus-exporter/) directory to get deploy
 Grafana Dashboard Examples
 ==========================
 Naviage to [grafana](/grafana/) directory to get deployment instructions.
+
 ![Grafana Dashboard Example](grafana/grafana-node-details.png)
 
-Telegraf
-========
-Currently only the Prometheus code is available.
+Splunk via Telegraf
+===================
+
+Naviage to [splunk](/splunk/) directory to get deployment instructions.
+
+![Splunk Example](splunk/splunk.png)
+
