@@ -1,0 +1,24 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Publish all releases to github container registry
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Build project
+        run: |
+           cd prometheus-exporter/service-code && docker build . --file Dockerfile --tag ghcr.io/$GITHUB_ACTOR/prometheus-openbmc-exporter:${GITHUB_REF##*/}
+      - name: Login to GitHub Container Registry
+        run: |
+           echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u $GITHUB_ACTOR --password-stdin
+      - name: Publish to Github container registry
+        run: |
+           docker push ghcr.io/$GITHUB_ACTOR/prometheus-openbmc-exporter:${GITHUB_REF##*/}
