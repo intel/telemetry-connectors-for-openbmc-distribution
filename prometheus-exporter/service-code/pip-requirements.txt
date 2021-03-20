@@ -4,7 +4,7 @@ Flask==1.1.1
 gpg==1.10.0
 iniparse==0.4
 itsdangerous==1.1.0
-Jinja2==2.10.3
+Jinja2==2.11.3
 jsonpatch==1.24
 jsonpath-rw==1.4.0
 jsonpointer==2.0
